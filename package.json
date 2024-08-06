@@ -1,0 +1,19 @@
+{
+  "name": "bumarginal_inline",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.7",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "telegraf": "^4.16.3"
+  }
+}

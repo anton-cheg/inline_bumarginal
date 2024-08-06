@@ -1,0 +1,194 @@
+import { entries, filter, first, random } from 'lodash';
+import { Telegraf } from 'telegraf';
+import data from './filtered.json';
+const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
+//1270213191040765952
+//MTI3MDIxMzE5MTA0MDc2NTk1Mg.GG8Y3o.u3UEKcsexH7p-7-a71uNzI_4OFvw0TTeLA1Dhk
+// b2ecbc7b00ae79a6d0b0070cc3baf76a494148f965545e7ddb27934e2fb94af5
+const messages: { text: string; from: string; from_id: string }[] = (
+  data as any
+).messages;
+
+const authors = {
+  'Ozumr': '5323244429',
+  'Дужо': '6373110331',
+  'Kama': '743676820',
+  // 'IDark🦴': '461815527',
+  'Rablez': '5299885702',
+  '🐭': '454478224',
+  'Gebeleizis': '401564378',
+  '🩵': '336811122',
+  'Maksym': '911064035',
+  '슬라빅 ㅤ': '5405425441',
+  ' Mikserious': '700379194',
+  '  Vincent': '5438051347',
+  'Pale Pine': '366082670',
+  '   Yacubus': '242387681',
+  'Arthur Freyr': '310656626',
+  '    Nikita': '516592563',
+  'nick 🥟': '839169324',
+  /*    DuzhoTestBot: '6948812443',
+    gneg: '270633054', */
+  /*  'МЕФОМЕТР': '6066014818',
+    'Evisceration Global': '5263350978',
+    'деградант-бот': '6611756982',
+    'прослушка каракала': '7318739188', */
+  'Покришка': '5943796076',
+  // 'Markinim ^_^': '5047828033',
+};
+const filteredMessages: {
+  text: string;
+  from: string;
+  from_id: string;
+  id: string;
+}[] = filter(
+  messages,
+  (message) =>
+    !message.text.startsWith('/') &&
+    !message.text.toLowerCase().includes('покрышк')
+).map((message, index) => ({ ...message, id: String(index + 1) }));
+
+const getThumbnail = async (userId: number) => {
+  const data = await bot.telegram.getUserProfilePhotos(userId);
+
+  console.log(data);
+
+  return first(data.photos);
+};
+
+const searchMessages = (data: {
+  userId: number;
+  query: string;
+  offset: string;
+}) => {
+  // lower(text) like lower('%${query}%')
+  //   const chatMessageRepository = getRepository(ChatMessage);
+
+  const filtered = filter(
+    filteredMessages,
+    (message) =>
+      message.from_id === String(data.userId) &&
+      message.text.toLowerCase().includes(data.query.toLowerCase())
+  );
+
+  const result = filtered.slice(Number(data.offset), Number(data.offset) + 50);
+
+  return result;
+};
+
+const getRandomMessage = (userId: number) => {
+  const arr = filter(
+    filteredMessages,
+    (message) => message.from_id === String(userId)
+  );
+
+  const index = random(0, arr.length - 1);
+
+  return arr[index];
+};
+
+const createArticle = (message: {
+  text: string;
+  from: string;
+  from_id: string;
+  id: string;
+}) => {
+  return {
+    type: 'article',
+    id: message.id.toString(),
+    thumbnail_url: null,
+    title: message.text,
+    input_message_content: {
+      message_text: message.text,
+    },
+  };
+};
+
+const searchArticles = async (data: {
+  userId: number;
+  query: string;
+  offset: string;
+}) => {
+  const messages = await searchMessages(data);
+
+  return messages.map(createArticle);
+};
+
+const getRandomArticles = async (userId: number) => {
+  let message = await getRandomMessage(userId);
+
+  if (!message) {
+    const synteticMessage = {
+      id: Math.floor(
+        Math.random() * (9999999999 - 1000000000 + 1) + 1000000000
+      ).toString(),
+      text: 'Донецк.',
+    };
+    const article = createArticle(synteticMessage as any);
+    article.title = 'К сожалению, ваших сообщений нет в базе :(';
+
+    return [article];
+  }
+
+  const article = createArticle(message);
+  //   const photo = await getThumbnail(userId);
+
+  article.title = 'Случайное сообщение';
+
+  const randomMessages = [];
+  for (const [author, authorId] of entries(authors)) {
+    const randomM = getRandomMessage(Number(authorId));
+    const art = createArticle(randomM as any);
+    art.title = `Случайное сообщение от ${author.trim()}`;
+    randomMessages.push(art);
+    // if (author[message.from]) {
+    //   article.title = `Случайное сообщение от ${author[message.from]}`;
+    // }
+  }
+
+  //   if (photo) {
+  //     article.thumbnail_url = photo[0].file_id;
+  //   }
+  return [article, ...randomMessages];
+};
+
+bot.on('inline_query', async (ctx) => {
+  let results = [];
+
+  let next_offset =
+    ctx.inlineQuery.query === ''
+      ? ''
+      : `${Number(ctx.inlineQuery.offset) + 50}`;
+
+  const userId =
+    ctx.inlineQuery.from.id === 6363973815
+      ? 1087968824
+      : ctx.inlineQuery.from.id;
+
+  if (ctx.inlineQuery.query === '') {
+    results = await getRandomArticles(userId);
+    next_offset = '';
+  } else {
+    results = await searchArticles({
+      userId,
+      query: ctx.inlineQuery.query,
+      offset: ctx.inlineQuery.offset,
+    });
+
+    if (!results.length || results.length < 50) {
+      next_offset = '';
+    }
+    if (!results.length) {
+      results = await getRandomArticles(userId);
+    }
+  }
+
+  return await ctx.answerInlineQuery(results, { cache_time: 0, next_offset });
+});
+
+bot.on('chosen_inline_result', ({ chosenInlineResult }) => {
+  console.log('chosen inline result', chosenInlineResult);
+});
+
+bot.launch();
+console.log('Bot inline started');
