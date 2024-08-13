@@ -1,0 +1,2 @@
+import { Duel } from "./entity";
+

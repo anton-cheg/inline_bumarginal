@@ -1,6 +1,7 @@
 import { entries, filter, first, keys, random } from 'lodash';
 import { Telegraf } from 'telegraf';
-import data from './filtered.json';
+import data from './without_one_word.json';
+import { main } from './index-duel';
 const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
 //1270213191040765952
 //MTI3MDIxMzE5MTA0MDc2NTk1Mg.GG8Y3o.u3UEKcsexH7p-7-a71uNzI_4OFvw0TTeLA1Dhk
@@ -49,13 +50,11 @@ const authors = {
     'Evisceration Global': '5263350978',
     'деградант-бот': '6611756982',
     'прослушка каракала': '7318739188', */
-  'Покришка': '5943796076',
+  // 'Покришка': '5943796076',
   // 'Markinim ^_^': '5047828033',
 };
 
-const messages: { text: string; from: string; from_id: string }[] = (
-  data as any
-).messages;
+const messages: { text: string; from: string; from_id: string }[] = data as any;
 const filteredMessages: {
   text: string;
   from: string;
@@ -201,20 +200,20 @@ const searchArticles = async (data: {
 };
 
 const getRandomArticles = async (userId: number) => {
-  let message = await getRandomMessage(userId);
+  // let message = await getRandomMessage(userId);
 
-  if (!message) {
-    const synteticMessage = {
-      id: Math.floor(
-        Math.random() * (9999999999 - 1000000000 + 1) + 1000000000
-      ).toString(),
-      text: 'Донецк.',
-    };
-    const article = createArticle(synteticMessage as any);
-    article.title = 'К сожалению, ваших сообщений нет в базе :(';
+  // if (!message) {
+  //   const synteticMessage = {
+  //     id: Math.floor(
+  //       Math.random() * (9999999999 - 1000000000 + 1) + 1000000000
+  //     ).toString(),
+  //     text: 'Донецк.',
+  //   };
+  //   const article = createArticle(synteticMessage as any);
+  //   article.title = 'К сожалению, ваших сообщений нет в базе :(';
 
-    return [article];
-  }
+  //   return [article];
+  // }
 
   /* const article = createArticle(message);
   //   const photo = await getThumbnail(userId);
@@ -285,3 +284,4 @@ bot.on('chosen_inline_result', ({ chosenInlineResult }) => {
 
 bot.launch();
 console.log('Bot inline started');
+main(messages);
