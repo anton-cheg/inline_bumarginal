@@ -92,6 +92,9 @@ export class DuelCollection {
 
   setInlineMessageId(data: ChosenInlineResult) {
     const duel = find(this.duels, (duel) => duel.id === data.result_id);
+    if (!duel) {
+      return this;
+    }
     duel.setInlineMessageId(data.inline_message_id);
     return this;
   }

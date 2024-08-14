@@ -1,6 +1,8 @@
 import { filter, fromPairs, keys, map, random } from 'lodash';
 import { Telegraf } from 'telegraf';
 import { Duel, DuelCollection } from './entity';
+import { findOrCreateUser, increaseAnswersCount } from './db';
+import { UserPayload } from './payload';
 // ! PROD
 // const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
 export async function main(data: any[]) {
@@ -158,8 +160,36 @@ export async function main(data: any[]) {
     return duel;
   }
 
+  const generateResultWithRate = async (data: Partial<UserPayload>) => {
+    const user = await findOrCreateUser(data as any);
+
+    let stats = `Player: ${user.first_name} ${user.last_name || ''}\n\n`;
+
+    stats += `<b>Duel Rate:</b> <i>${
+      user.duel_rate
+    }\n</i><b>Accuracy:</b> <i>${(
+      (user.correct_answers / user.total_answers || 0) * 100
+    ).toFixed(2)}%</i>\n<b>Total Answers:</b> ${
+      user.total_answers
+    }\n<b>Correct Answers:</b> ${user.correct_answers}`;
+
+    const response = {
+      type: 'article',
+      id: `${Date.now()}`.slice(-7),
+      title: 'Show Stats',
+      input_message_content: {
+        message_text: stats,
+        parse_mode: 'HTML',
+      },
+      thumb_url:
+        'https://www.thebritishacademy.ac.uk/media/images/Infographics_Update_.width-1000.jpg',
+    };
+
+    return response;
+  };
+
   bot.on('callback_query', async (ctx) => {
-    const data: { variant: string; correct: false } = JSON.parse(
+    const data: { variant: string; correct: boolean } = JSON.parse(
       (ctx.callbackQuery as any).data
     );
 
@@ -185,6 +215,8 @@ export async function main(data: any[]) {
 
     duelData.suggestions.push({ user: ctx.from, variant: data.variant });
 
+    increaseAnswersCount(ctx.from, data.correct);
+
     return ctx.editMessageText(
       `<blockquote>${duelData.message}</blockquote>\n\n${duelData.suggestionsText}`,
       {
@@ -206,9 +238,14 @@ export async function main(data: any[]) {
           message_text: duel.message,
           parse_mode: 'HTML',
         },
+        thumb_url:
+          'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ef/44/80/ef448000-37d6-8724-08c0-c9e7202dae63/AppIcon-1x_U007epad-0-85-220-0.png/1200x630wa.png',
         reply_markup: { inline_keyboard: duel.markupKeyboard },
       },
     ];
+
+    const userStats = await generateResultWithRate(ctx.from);
+    results.push(userStats as any);
 
     return await ctx.answerInlineQuery(results as any, { cache_time: 0 });
   });
@@ -219,7 +256,9 @@ export async function main(data: any[]) {
 
     const duel = duelCollection.getDuel({ id: result_id });
 
-    closedDuelTimer(duel);
+    if (duel) {
+      closedDuelTimer(duel);
+    }
   });
 
   function closedDuelTimer(duel: Duel) {
