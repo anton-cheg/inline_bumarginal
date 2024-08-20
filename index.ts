@@ -281,7 +281,13 @@ bot.on('inline_query', async (ctx) => {
 
 bot.command('quiz', async (ctx) => {
   // pick 300 random messages from array filteredMessages not via getRandomMessage
-  const randomMessages = shuffleArray(filteredMessages).slice(0, 300);
+
+  // get random index in range from 0 to filteredMessages.length-300
+
+  const randomIndex = Math.floor(
+    Math.random() * (filteredMessages.length - 300)
+  );
+  const randomMessages = filteredMessages.slice(randomIndex, randomIndex + 300);
 
   const quiz = await generateQuiz(randomMessages);
 
