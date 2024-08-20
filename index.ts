@@ -2,6 +2,7 @@ import { entries, filter, first, keys, random } from 'lodash';
 import { Telegraf } from 'telegraf';
 import data from './without_one_word.json';
 import { main } from './index-duel';
+import { generateQuiz } from './openai';
 const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
 //1270213191040765952
 //MTI3MDIxMzE5MTA0MDc2NTk1Mg.GG8Y3o.u3UEKcsexH7p-7-a71uNzI_4OFvw0TTeLA1Dhk
@@ -276,6 +277,34 @@ bot.on('inline_query', async (ctx) => {
     next_offset = '';
     return await ctx.answerInlineQuery(results, { cache_time: 0, next_offset });
   }
+});
+
+bot.command('quiz', async (ctx) => {
+  // pick 300 random messages from array filteredMessages not via getRandomMessage
+  const randomMessages = shuffleArray(filteredMessages).slice(0, 300);
+
+  const quiz = await generateQuiz(randomMessages);
+
+  if (typeof quiz === 'string') {
+    return ctx.reply(quiz);
+  }
+  const mappedOptions = quiz.options.map((option) => option.substring(0, 100));
+
+  const pollMessage = await bot.telegram.sendQuiz(
+    ctx.chat.id,
+    quiz.question.substring(0, 255),
+    mappedOptions,
+    {
+      explanation: quiz.explanation.slice(0, 200),
+      correct_option_id: quiz.correct_option_id,
+      explanation_parse_mode: 'Markdown',
+      is_anonymous: false,
+      reply_parameters: { message_id: ctx.msgId }, // Ответ на сообщение пользователя
+      open_period: 40, // Время на ответ в секундах (3 минуты)
+    }
+  );
+
+  return;
 });
 
 bot.on('chosen_inline_result', ({ chosenInlineResult }) => {
