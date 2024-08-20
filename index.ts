@@ -370,9 +370,9 @@ bot.command('manyquiz', async (ctx) => {
       if (prev) {
         const explanation = prev?.poll?.explanation;
 
-        ctx.reply(`||${explanation}||`, {
+        ctx.reply(`<spoiler>${explanation}</spoiler>`, {
           reply_parameters: { message_id: prev.message_id },
-          parse_mode: 'MarkdownV2',
+          parse_mode: 'HTML',
         });
       }
 
