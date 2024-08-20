@@ -316,7 +316,7 @@ bot.command('quiz', async (ctx) => {
       explanation_parse_mode: 'Markdown',
       is_anonymous: false,
       reply_parameters: { message_id: ctx.msgId }, // Ответ на сообщение пользователя
-      open_period: 40, // Время на ответ в секундах (3 минуты)
+      open_period: 100, // Время на ответ в секундах (3 минуты)
     }
   );
 
