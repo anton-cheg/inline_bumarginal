@@ -286,7 +286,7 @@ bot.command('quiz', async (ctx) => {
   const quiz = await generateQuiz(randomMessages);
 
   if (typeof quiz === 'string') {
-    return ctx.reply(quiz);
+    return ctx.reply(quiz, { reply_parameters: { message_id: ctx.msgId } });
   }
   const mappedOptions = quiz.options.map((option) => option.substring(0, 100));
 
@@ -300,7 +300,7 @@ bot.command('quiz', async (ctx) => {
       explanation_parse_mode: 'Markdown',
       is_anonymous: false,
       reply_parameters: { message_id: ctx.msgId }, // Ответ на сообщение пользователя
-      open_period: 40, // Время на ответ в секундах (3 минуты)
+      // open_period: 40, // Время на ответ в секундах (3 минуты)
     }
   );
 
