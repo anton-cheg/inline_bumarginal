@@ -302,6 +302,8 @@ bot.command('quiz', async (ctx) => {
   const quiz = await generateQuiz(randomMessages);
 
   if (typeof quiz === 'string') {
+    isQuizGenerating = false;
+
     return ctx.reply(quiz, { reply_parameters: { message_id: ctx.msgId } });
   }
   const mappedOptions = quiz.options.map((option) => option.substring(0, 100));
