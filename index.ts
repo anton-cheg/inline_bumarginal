@@ -297,16 +297,21 @@ bot.command('quiz', async (ctx) => {
   const randomIndex = Math.floor(
     Math.random() * (filteredMessages.length - 300)
   );
-  const randomMessages = filteredMessages.slice(randomIndex, randomIndex + 300);
+  const randomMessages = filteredMessages.slice(randomIndex, randomIndex + 50);
 
-  const quiz = await generateQuiz(randomMessages);
+  const mapped = randomMessages.map((message) => ({
+    message: message.text,
+    from: message.from,
+  }));
+
+  const quiz = await generateQuiz(mapped);
 
   if (typeof quiz === 'string') {
     isQuizGenerating = false;
 
     return ctx.reply(quiz, { reply_parameters: { message_id: ctx.msgId } });
   }
-  const mappedOptions = quiz.options.map((option) => option.substring(0, 100));
+  const mappedOptions = quiz.options.map((option) => option.substring(0, 50));
 
   const pollMessage = await bot.telegram.sendQuiz(
     ctx.chat.id,
