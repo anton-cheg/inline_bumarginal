@@ -389,7 +389,7 @@ bot.command('manyquiz', async (ctx) => {
         }
       );
 
-      setTimeout(() => sendQuiz(quizesArray), 10000);
+      setTimeout(() => sendQuiz(quizesArray), 30000);
     };
 
     return sendQuiz(quizesArray);
