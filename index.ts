@@ -279,10 +279,20 @@ bot.on('inline_query', async (ctx) => {
   }
 });
 
+let isQuizGenerating = false;
+
 bot.command('quiz', async (ctx) => {
   // pick 300 random messages from array filteredMessages not via getRandomMessage
 
   // get random index in range from 0 to filteredMessages.length-300
+
+  if (isQuizGenerating) {
+    return ctx.reply('Подождите, идет генерация вопроса', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  }
+
+  isQuizGenerating = true;
 
   const randomIndex = Math.floor(
     Math.random() * (filteredMessages.length - 300)
@@ -309,6 +319,8 @@ bot.command('quiz', async (ctx) => {
       open_period: 40, // Время на ответ в секундах (3 минуты)
     }
   );
+
+  isQuizGenerating = false;
 
   return;
 });
