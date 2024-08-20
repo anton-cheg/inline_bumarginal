@@ -367,6 +367,7 @@ bot.command('manyquiz', async (ctx) => {
     //  recursive function that send quiz every 30 seconds and delete from array
     const sendQuiz = async (quizesArray) => {
       if (quizesArray.length === 0) {
+        await ctx.reply('End', { reply_parameters: { message_id: ctx.msgId } });
         isManyRunn = false;
         return;
       }
@@ -391,7 +392,7 @@ bot.command('manyquiz', async (ctx) => {
         }
       );
 
-      setTimeout(() => sendQuiz(quizesArray), 10000);
+      setTimeout(() => sendQuiz(quizesArray), 20000);
     };
 
     await ctx.reply('Start', { reply_parameters: { message_id: ctx.msgId } });
