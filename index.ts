@@ -332,14 +332,16 @@ bot.command('quiz', async (ctx) => {
   return;
 });
 
+let isManyRunn = false;
+
 bot.command('manyquiz', async (ctx) => {
-  if (isQuizGenerating) {
+  if (isManyRunn) {
     return ctx.reply('Подождите, идет генерация вопроса', {
       reply_parameters: { message_id: ctx.msgId },
     });
   }
 
-  isQuizGenerating = true;
+  isManyRunn = true;
 
   const generate = async () => {
     const randomIndex = Math.floor(
@@ -365,7 +367,7 @@ bot.command('manyquiz', async (ctx) => {
     //  recursive function that send quiz every 30 seconds and delete from array
     const sendQuiz = async (quizesArray) => {
       if (quizesArray.length === 0) {
-        isQuizGenerating = false;
+        isManyRunn = false;
         return;
       }
 
@@ -389,12 +391,14 @@ bot.command('manyquiz', async (ctx) => {
         }
       );
 
-      setTimeout(() => sendQuiz(quizesArray), 30000);
+      setTimeout(() => sendQuiz(quizesArray), 10000);
     };
+
+    await ctx.reply('Start', { reply_parameters: { message_id: ctx.msgId } });
 
     return sendQuiz(quizesArray);
   } catch (e) {
-    isQuizGenerating = false;
+    isManyRunn = false;
 
     return ctx.reply('Что-то пошло не так. Попробуйте еще раз.', {
       reply_parameters: { message_id: ctx.msgId },
