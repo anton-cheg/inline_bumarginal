@@ -295,7 +295,7 @@ bot.command('quiz', async (ctx) => {
   isQuizGenerating = true;
 
   const randomIndex = Math.floor(
-    Math.random() * (filteredMessages.length - 300)
+    Math.random() * (filteredMessages.length - 50)
   );
   const randomMessages = filteredMessages.slice(randomIndex, randomIndex + 50);
 
@@ -323,7 +323,7 @@ bot.command('quiz', async (ctx) => {
       explanation_parse_mode: 'Markdown',
       is_anonymous: false,
       reply_parameters: { message_id: ctx.msgId }, // Ответ на сообщение пользователя
-      open_period: 100, // Время на ответ в секундах (3 минуты)
+      // open_period: 100, // Время на ответ в секундах (3 минуты)
     }
   );
 
