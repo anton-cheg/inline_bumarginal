@@ -37,6 +37,7 @@ export async function generateQuiz(messages: any[]) {
   } catch (error) {
     console.log(error);
 
+    return generateQuiz(messages);
     return 'Что-то пошло не так. Попробуйте еще раз.';
   }
 }
