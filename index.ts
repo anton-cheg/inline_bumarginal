@@ -2,7 +2,7 @@ import { entries, filter, first, keys, random } from 'lodash';
 import { Telegraf } from 'telegraf';
 import data from './without_one_word.json';
 import { main } from './index-duel';
-import { generateQuiz } from './openai';
+import { generateArrayQuizes, generateQuiz } from './openai';
 const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
 //1270213191040765952
 //MTI3MDIxMzE5MTA0MDc2NTk1Mg.GG8Y3o.u3UEKcsexH7p-7-a71uNzI_4OFvw0TTeLA1Dhk
@@ -330,6 +330,77 @@ bot.command('quiz', async (ctx) => {
   isQuizGenerating = false;
 
   return;
+});
+
+bot.command('manyquiz', async (ctx) => {
+  if (isQuizGenerating) {
+    return ctx.reply('Подождите, идет генерация вопроса', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  }
+
+  isQuizGenerating = true;
+
+  const generate = async () => {
+    const randomIndex = Math.floor(
+      Math.random() * (filteredMessages.length - 100)
+    );
+    const randomMessages = filteredMessages.slice(
+      randomIndex,
+      randomIndex + 100
+    );
+
+    const mapped = randomMessages.map((message) => ({
+      message: message.text,
+      from: message.from,
+    }));
+
+    const quiz = await generateArrayQuizes(mapped);
+    return quiz;
+  };
+
+  try {
+    const quizesArray = await generate();
+
+    //  recursive function that send quiz every 30 seconds and delete from array
+    const sendQuiz = async (quizesArray) => {
+      if (quizesArray.length === 0) {
+        isQuizGenerating = false;
+        return;
+      }
+
+      const quiz = quizesArray.shift();
+
+      const mappedOptions = quiz.options.map((option) =>
+        option.substring(0, 50)
+      );
+
+      const pollMessage = await bot.telegram.sendQuiz(
+        ctx.chat.id,
+        quiz.question.substring(0, 255),
+        mappedOptions,
+        {
+          explanation: quiz.explanation.slice(0, 200),
+          correct_option_id: quiz.correct_option_id,
+          explanation_parse_mode: 'Markdown',
+          is_anonymous: false,
+          reply_parameters: { message_id: ctx.msgId }, // Ответ на сообщение пользователя
+          // open_period: 100, // Время на ответ в секундах (3 минуты)
+        }
+      );
+
+      setTimeout(() => sendQuiz(quizesArray), 10000);
+    };
+
+    return sendQuiz(quizesArray);
+  } catch (e) {
+    isQuizGenerating = false;
+
+    return ctx.reply('Что-то пошло не так. Попробуйте еще раз.', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  }
+  //  recursive function that send quiz every 30 seconds and delete from array
 });
 
 bot.on('chosen_inline_result', ({ chosenInlineResult }) => {
