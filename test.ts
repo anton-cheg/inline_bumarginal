@@ -75,9 +75,9 @@
 
 // const generate = async () => {
 //   const randomIndex = Math.floor(
-//     Math.random() * (filteredMessages.length - 100)
+//     Math.random() * (filteredMessages.length - 200)
 //   );
-//   const randomMessages = filteredMessages.slice(randomIndex, randomIndex + 100);
+//   const randomMessages = filteredMessages.slice(randomIndex, randomIndex + 200);
 
 //   const mapped = randomMessages.map((message) => ({
 //     message: message.text,
@@ -88,4 +88,4 @@
 //   return quiz;
 // };
 
-// generate().then(console.log);
+// generate().then((res) => console.dir(res));

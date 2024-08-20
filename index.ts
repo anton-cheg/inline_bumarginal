@@ -3,6 +3,7 @@ import { Telegraf } from 'telegraf';
 import data from './without_one_word.json';
 import { main } from './index-duel';
 import { generateArrayQuizes, generateQuiz } from './openai';
+import { Message } from '@telegraf/types';
 const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
 //1270213191040765952
 //MTI3MDIxMzE5MTA0MDc2NTk1Mg.GG8Y3o.u3UEKcsexH7p-7-a71uNzI_4OFvw0TTeLA1Dhk
@@ -345,11 +346,11 @@ bot.command('manyquiz', async (ctx) => {
 
   const generate = async () => {
     const randomIndex = Math.floor(
-      Math.random() * (filteredMessages.length - 100)
+      Math.random() * (filteredMessages.length - 200)
     );
     const randomMessages = filteredMessages.slice(
       randomIndex,
-      randomIndex + 100
+      randomIndex + 200
     );
 
     const mapped = randomMessages.map((message) => ({
@@ -365,7 +366,16 @@ bot.command('manyquiz', async (ctx) => {
     const quizesArray = await generate();
 
     //  recursive function that send quiz every 30 seconds and delete from array
-    const sendQuiz = async (quizesArray) => {
+    const sendQuiz = async (quizesArray, prev?: Message.PollMessage) => {
+      if (prev) {
+        const explanation = prev?.poll?.explanation;
+
+        ctx.reply(`||${explanation}||`, {
+          reply_parameters: { message_id: prev.message_id },
+          parse_mode: 'MarkdownV2',
+        });
+      }
+
       if (quizesArray.length === 0) {
         await ctx.reply('End', { reply_parameters: { message_id: ctx.msgId } });
         isManyRunn = false;
@@ -392,7 +402,7 @@ bot.command('manyquiz', async (ctx) => {
         }
       );
 
-      setTimeout(() => sendQuiz(quizesArray), 20000);
+      setTimeout(() => sendQuiz(quizesArray, pollMessage), 20000);
     };
 
     await ctx.reply('Start', { reply_parameters: { message_id: ctx.msgId } });
