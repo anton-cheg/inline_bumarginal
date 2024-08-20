@@ -68,7 +68,7 @@ export async function generateArrayQuizes(messages: any[]) {
 
   try {
     const parsedResponse = JSON.parse(response);
-    return parsedResponse;
+    return parsedResponse.arrQuiz;
   } catch (error) {
     console.error(error);
 
