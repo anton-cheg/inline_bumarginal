@@ -2,7 +2,11 @@ import { entries, filter, first, keys, random } from 'lodash';
 import { Telegraf } from 'telegraf';
 import data from './without_one_word.json';
 import { main } from './index-duel';
-import { generateArrayQuizes, generateQuiz } from './openai';
+import {
+  generateArrayQuizes,
+  generateArrayQuizesAuthor,
+  generateQuiz,
+} from './openai';
 import { Message } from '@telegraf/types';
 const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
 //1270213191040765952
@@ -407,6 +411,103 @@ bot.command('manyquiz', async (ctx) => {
     });
   }
   //  recursive function that send quiz every 30 seconds and delete from array
+});
+
+bot.command('quizauthor', async (ctx) => {
+  if (isManyRunn) {
+    return ctx.reply('Подождите, идет генерация вопроса', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  }
+
+  const replyMessage = ctx.message.reply_to_message;
+
+  if (!replyMessage) {
+    return ctx.reply('Команда должна быть реплаем на сообщение пользователя', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  }
+
+  const authorId = String(replyMessage.from.id);
+
+  const authorMessages = filteredMessages.filter(
+    (message) => message.from_id === authorId
+  );
+
+  if (authorMessages.length <= 200) {
+    return ctx.reply(
+      'У пользователя недостаточно сообщений для генерации вопросов',
+      {
+        reply_parameters: { message_id: ctx.msgId },
+      }
+    );
+  }
+
+  isManyRunn = true;
+
+  const generate = async () => {
+    const randomIndex = Math.floor(
+      Math.random() * (authorMessages.length - 200)
+    );
+    const randomMessages = authorMessages.slice(randomIndex, randomIndex + 200);
+
+    const mapped = randomMessages.map((message) => ({
+      message: message.text,
+      from: message.from,
+    }));
+
+    const quiz = await generateArrayQuizesAuthor(mapped);
+    return quiz;
+  };
+
+  try {
+    const quizesArray = await generate();
+
+    //  recursive function that send quiz every 30 seconds and delete from array
+    const sendQuiz = async (quizesArray) => {
+      if (quizesArray.length === 0) {
+        await ctx.reply('End Author', {
+          reply_parameters: { message_id: ctx.msgId },
+        });
+        isManyRunn = false;
+        return;
+      }
+
+      const quiz = quizesArray.shift();
+
+      const mappedOptions = quiz.options.map((option) =>
+        option.substring(0, 50)
+      );
+
+      const pollMessage = await bot.telegram.sendQuiz(
+        ctx.chat.id,
+        quiz.question.substring(0, 255),
+        mappedOptions,
+        {
+          explanation: quiz.explanation.slice(0, 200),
+          correct_option_id: quiz.correct_option_id,
+          explanation_parse_mode: 'Markdown',
+          is_anonymous: false,
+          reply_parameters: { message_id: ctx.msgId }, // Ответ на сообщение пользователя
+          // open_period: 100, // Время на ответ в секундах (3 минуты)
+        }
+      );
+
+      setTimeout(() => sendQuiz(quizesArray), 20000);
+    };
+
+    await ctx.reply('Start Author', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+
+    return sendQuiz(quizesArray);
+  } catch (e) {
+    isManyRunn = false;
+
+    return ctx.reply('Что-то пошло не так. Попробуйте еще раз.', {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  }
 });
 
 bot.on('chosen_inline_result', ({ chosenInlineResult }) => {

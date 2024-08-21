@@ -77,3 +77,37 @@ export async function generateArrayQuizes(messages: any[]) {
     return 'Что-то пошло не так. Попробуйте еще раз.';
   }
 }
+
+export async function generateArrayQuizesAuthor(messages: any[]) {
+  const messagesString = JSON.stringify(messages, null, 0);
+
+  const generateQuestion = `Придумай 8 очень сложных вопрос с четырьмя вариантами ответов по мотивам cообщения участника чата. Ник участника содержиться в графе from. Ответы должны быть разными и один из них правильный.Формат обьекта с вопросом:{"question": "Вопрос", "options": ["Ответ 1", "Ответ 2", "Ответ 3", "Ответ 4"], "correct_option_id": номер правильного ответа (начиная с 0),"explanation": "Объяснение правильного ответа"}.Формат общего ответа: {"arrQuiz":[]} - в проперти arrQuiz масив вопросов. ВАЖНО: не ДОБАВЛЯЙ РАЗМЕТКУ В ОТВЕТ(\`\`\`json и тд). ТОЛЬКО JSON КОТОРЫЙ МОЖНО СПАРСИТЬ В JS.Поддерживайте следующие ограничения по длине:
+
+- Длина вопроса: не более 255 символов
+- Длина варианта ответа: не более 100 символов
+Вот сообщения участников:\n${messagesString}`;
+
+  const chatCompletion = await openaiTest.chat.completions.create({
+    messages: [
+      {
+        role: 'user',
+        content: `${generateQuestion}`,
+      },
+    ],
+    model: 'gpt-4o-mini-2024-07-18',
+    // model: 'gpt-4o-2024-05-13',
+    max_tokens: 4000,
+  });
+  const response = chatCompletion.choices[0].message.content;
+
+  try {
+    const parsedResponse = JSON.parse(response);
+    return parsedResponse.arrQuiz;
+  } catch (error) {
+    console.error(error);
+
+    console.log(response);
+    // return generateQuiz(messages);
+    return 'Что-то пошло не так. Попробуйте еще раз.';
+  }
+}
