@@ -413,7 +413,7 @@ bot.command('manyquiz', async (ctx) => {
   //  recursive function that send quiz every 30 seconds and delete from array
 });
 
-bot.command('quizauthor', async (ctx) => {
+bot.command('authorquiz', async (ctx) => {
   if (isManyRunn) {
     return ctx.reply('Подождите, идет генерация вопроса', {
       reply_parameters: { message_id: ctx.msgId },
