@@ -5,7 +5,7 @@ import { findOrCreateUser, increaseAnswersCount } from './db';
 import { UserPayload } from './payload';
 // ! PROD
 // const bot = new Telegraf('7475067874:AAGW1Z-hgUPKty6wKkNWUJBOd5OsZ1LcVyU');
-export async function main(data: any[]) {
+export async function main(data: any[], mainBot: Telegraf) {
   // ! DEV
 
   const bot = new Telegraf('7381663952:AAEn6xDkr5As7O0--g85zAD5ne3uHwC5o6M');
@@ -280,5 +280,19 @@ export async function main(data: any[]) {
     }, 12000);
   }
   bot.launch();
+
+  mainBot.hears('якубус', async (ctx) => {
+    const message = getRandomMessage(242387681);
+    return ctx.reply(message.text, {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  });
+
+  mainBot.hears('Якубус', async (ctx) => {
+    const message = getRandomMessage(242387681);
+    return ctx.reply(message.text, {
+      reply_parameters: { message_id: ctx.msgId },
+    });
+  });
   console.log('Bot duel inline started');
 }
