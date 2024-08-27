@@ -281,18 +281,14 @@ export async function main(data: any[], mainBot: Telegraf) {
   }
   bot.launch();
 
-  mainBot.hears('якубус', async (ctx) => {
-    const message = getRandomMessage(242387681);
-    return ctx.reply(message.text, {
-      reply_parameters: { message_id: ctx.msgId },
-    });
-  });
-
-  mainBot.hears('Якубус', async (ctx) => {
-    const message = getRandomMessage(242387681);
-    return ctx.reply(message.text, {
-      reply_parameters: { message_id: ctx.msgId },
-    });
+  mainBot.on('text', async (ctx) => {
+    const messageText = ctx.message.text.toLowerCase(); // приводим текст к нижнему регистру для удобства сравнения
+    if (messageText.includes('якубус')) {
+      const message = getRandomMessage(242387681);
+      return ctx.reply(message.text, {
+        reply_parameters: { message_id: ctx.msgId },
+      });
+    }
   });
   console.log('Bot duel inline started');
 }

@@ -514,20 +514,6 @@ bot.on('chosen_inline_result', ({ chosenInlineResult }) => {
   console.log('chosen inline result', chosenInlineResult);
 });
 
-bot.hears('test1', (ctx) => {
-  ctx.reply('~test1~', {
-    reply_parameters: { message_id: ctx.msgId },
-    parse_mode: 'Markdown',
-  });
-});
-
-bot.hears('test2', (ctx) => {
-  ctx.reply('~test2~', {
-    reply_parameters: { message_id: ctx.msgId },
-    parse_mode: 'MarkdownV2',
-  });
-});
-
 bot.launch();
 
 console.log('Bot inline started');
